@@ -22,12 +22,10 @@
 (defn fetch-bitcoin-price-success [response]
   (let [current-state @state
         new-price (:price_usd (first response))]
-    (timbre/info (str "response: " response))
-    (timbre/info current-state)
-    (timbre/info new-price)
-    (swap! state (fn [state]
-                   (-> state
-                       (assoc :price new-price))))))
+    (when (:is-playing-game? current-state)
+      (swap! state (fn [state]
+                     (-> state
+                         (assoc :price new-price)))))))
 
 (defn fetch-bitcoin-price-error [{:keys [status status-text]}]
   (.log js/console (str "bad request to bitcoin charts: " status " " status-text)))
@@ -63,8 +61,6 @@
   (let [target-el (oget js-evt "target")
         start? (ocall (oget target-el "classList") "contains" "start")
         reset? (ocall (oget target-el "classList") "contains" "reset")]
-;;(timbre/info (str "target: " target-el))
-    ;(timbre/info (str "start: " start?))
     (cond
       start? (start-game)
       reset? (reset-game))))
