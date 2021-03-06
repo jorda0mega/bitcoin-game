@@ -1,0 +1,9 @@
+{:deps         true
+ :builds       {:app {:target     :browser
+                      :output-dir "public/js"
+                      :modules    {:main {:entries [bitcoin-game.core]}}
+                      :devtools   {:repl-init-ns bitcoin-game.core
+                                   :repl-pprint  true
+                                   :http-root    "public/"
+                                   :http-port    9001}}}
+ :nrepl        {:port 3333}}

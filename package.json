@@ -1,0 +1,17 @@
+{
+  "author": "Jorge David",
+  "name": "bitcoin-game",
+  "description": "Bitcoin Game",
+  "version": "1.0.0",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jorda0mega/bitcoin-game.git"
+  },
+  "devDependencies": {
+    "shadow-cljs": "2.11.18"
+  },
+  "dependencies": {
+    "rangeslider.js": "^2.3.3"
+  }
+}
