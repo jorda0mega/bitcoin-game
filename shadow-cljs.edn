@@ -1,8 +1,8 @@
 {:deps         true
  :builds       {:app {:target     :browser
                       :output-dir "public/js"
-                      :modules    {:main {:entries [bitcoin-game.core]}}
-                      :devtools   {:repl-init-ns bitcoin-game.core
+                      :modules    {:main {:entries [com.github.jorda0mega.bitcoin-game.core]}}
+                      :devtools   {:repl-init-ns com.github.jorda0mega.bitcoin-game.core
                                    :repl-pprint  true
                                    :http-root    "public/"
                                    :http-port    9001}}}

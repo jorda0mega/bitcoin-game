@@ -1,6 +1,6 @@
-(ns bitcoin-game.core
+(ns com.github.jorda0mega.bitcoin-game.core
   (:require
-    [bitcoin-game.interaction :refer [init-dom-events! init-watchers! trigger-render!]]
+    [com.github.jorda0mega.bitcoin-game.interaction :refer [init-dom-events! init-watchers! trigger-render!]]
     [goog.functions :as gfunctions]
     [oops.core :refer [ocall]]))
 

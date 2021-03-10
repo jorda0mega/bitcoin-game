@@ -1,4 +1,4 @@
-(ns bitcoin-game.html
+(ns com.github.jorda0mega.bitcoin-game.html
   (:require-macros [hiccups.core :as hiccups :refer [html]])
   (:require [hiccups.runtime :as hiccups]))
             ;["rangeslider" :as slider]))

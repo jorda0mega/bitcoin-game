@@ -1,7 +1,7 @@
-(ns bitcoin-game.interaction
+(ns com.github.jorda0mega.bitcoin-game.interaction
   (:require
-    [bitcoin-game.state :refer [initial-state state]]
-    [bitcoin-game.html :as html]
+    [com.github.jorda0mega.bitcoin-game.state :refer [initial-state state]]
+    [com.github.jorda0mega.bitcoin-game.html :as html]
     [goog.dom :as gdom]
     [taoensso.timbre :as timbre]
     [goog.functions :as gfunctions]
