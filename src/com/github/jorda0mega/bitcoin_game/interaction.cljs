@@ -19,21 +19,44 @@
   (timbre/trace new-state)
   (set-app-html! (html/BitcoinGame new-state)))
 
-(defn fetch-bitcoin-price-success [response]
-  (let [current-state @state
-        new-price (:price_usd (first response))]
-    (when (:is-playing-game? current-state)
-      (swap! state (fn [state]
-                     (-> state
-                         (assoc :price new-price)))))))
+(defn start-game-success [new-price]
+  (swap! state (fn [current-state]
+                 (if-not (:is-playing-game? current-state)
+                   current-state
+                   (assoc current-state :price new-price)))))
 
 (defn fetch-bitcoin-price-error [{:keys [status status-text]}]
-  (.log js/console (str "bad request to bitcoin charts: " status " " status-text)))
+  (timbre/error "bad request to bitcoin charts: " status " " status-text))
+
+(defn profit-from-vote
+  "determines whether the vote was correct/wrong and adds/removes profits accordingly"
+  [vote-result bid]
+  (swap! state (fn [current-state]
+                 (let [current-profit (:profit current-state)]
+                   (if vote-result
+                     (assoc current-state :profit (+ current-profit bid))
+                     (assoc current-state :profit (- current-profit bid)))))))
+
+(defn vote-up-success
+  "handle voting up "
+  [new-price]
+  (timbre/info "calling vote up")
+  (swap! state (fn [current-state]
+                 (assoc current-state :price new-price)
+                 (profit-from-vote (>= new-price (:price current-state)) 100))))
+
+(defn vote-down-success
+  "handle voting up "
+  [new-price]
+  (timbre/info "calling vote down")
+  (swap! state (fn [current-state]
+                 (assoc current-state :price new-price)
+                 (profit-from-vote (<= new-price (:price current-state)) 100))))
 
 (defn fetch-bitcoin-price
   "ajax request to fetch bitcoin current price"
-  []
-  (GET "https://api.coinlore.net/api/ticker/?id=90" {:handler         fetch-bitcoin-price-success
+  [success-fn]
+  (GET "https://api.coinlore.net/api/ticker/?id=90" {:handler         success-fn
                                                      :error-handler   fetch-bitcoin-price-error
                                                      :response-format :json
                                                      :keywords?       true}))
@@ -41,29 +64,48 @@
 (defn start-game []
   (swap! state (fn [state]
                  (assoc state :is-playing-game? true)))
-  (fetch-bitcoin-price))
+  (fetch-bitcoin-price start-game-success))
 
 (defn reset-game []
   (reset! state initial-state))
 
+(defn vote-up
+  "voting that the bitcoin price will go up"
+  []
+  (timbre/info "I bet the bitcoin price is going up")
+  (fetch-bitcoin-price vote-up-success))
+
+(defn vote-down
+  "voting that the bitcoin price will go down"
+  []
+  (timbre/info "I bet the bitcoin price is going down")
+  (fetch-bitcoin-price vote-down-success))
+
 (defn handle-game-started []
-  (oset! (gdom/getElement "buttonPanel") "style.display" "inline-block")
   (oset! (gdom/getElement "startButton") "style.display" "none")
-  (oset! (gdom/getElement "resetButton") "style.display" "inline-block"))
+  (oset! (gdom/getElement "divPrice") "style.display" "inline-block")
+  (oset! (gdom/getElement "divProfit") "style.display" "block")
+  (oset! (gdom/getElement "buttonPanel") "style.display" "inline-block")
+  (oset! (gdom/getElement "resetButton") "style.display" "inline-block")
+  (oset! (gdom/getElement "divRangeSlider") "style.display" "block"))
 
 (defn handle-game-state [_ _kwd _prev-state new-state]
-  (when-let [is-playing-game? (:is-playing-game? new-state)]
-    (if is-playing-game?
-      (handle-game-started)
-      (oset! (gdom/getElement "buttonPanel") "style.display" "none"))))
+  (let [is-playing-game? (:is-playing-game? new-state)]
+    (when is-playing-game?
+      (handle-game-started))))
 
 (defn click-app-container [js-evt]
   (let [target-el (oget js-evt "target")
-        start? (ocall (oget target-el "classList") "contains" "start")
-        reset? (ocall (oget target-el "classList") "contains" "reset")]
+        start? (ocall target-el "classList.contains" "start")
+        reset? (ocall target-el "classList.contains" "reset")
+        going-up? (ocall target-el "classList.contains" "upBtn")
+        going-down? (ocall target-el "classList.contains" "downBtn")]
     (cond
       start? (start-game)
-      reset? (reset-game))))
+      reset? (reset-game)
+      going-up? (vote-up)
+      going-down? (vote-down)
+      :else nil)))
 
 ;; ---------------------------------------------
 ;; Public API

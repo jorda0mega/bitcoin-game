@@ -1,7 +1,6 @@
 (ns com.github.jorda0mega.bitcoin-game.html
   (:require-macros [hiccups.core :as hiccups :refer [html]])
   (:require [hiccups.runtime :as hiccups]))
-            ;["rangeslider" :as slider]))
 
 (defn PageTitle []
   [:h1.display-3
@@ -13,30 +12,36 @@
 (defn Reset []
   [:div [:input {:id "resetButton" :class "reset" :type "button" :value "Reset"}]])
 
+(defn PriceSlider []
+  [:div.rangeSlider {:id "divRangeSlider"} [:input {:id "inputRangeSlider" :type "range" :min "0" :max "1000" :step "100" :value="500"}]])
+
 (defn UpButton []
-  [:input {:id "upButton" :class "upBtn" :type "button" :value "⬆"}])
+  [:div.divUpButton [:input {:id "upButton" :class "upBtn" :type "button" :value "⬆"}]])
 
 (defn DownButton []
-  [:input {:id "downButton" :class "downBtn" :type "button" :value "⬇"}])
+  [:div.divDownButton [:input {:id "downButton" :class "downBtn" :type "button" :value "⬇"}]])
 
 (defn ButtonPanel []
-  [:div {:id "buttonPanel" :class "btnPanel"}
-   (UpButton)
-   (DownButton)])
-
-;(defn Slider []
-;  [:div (slider/createSliderWithTooltip)])
+  [:div.divButtonPanel {:id "buttonPanel" :class "btnPanel"}
+   (DownButton)
+   (UpButton)])
 
 (defn PriceSection [price]
-  [:div.price
+  [:div.price {:id "divPrice"}
    [:span.label (str "$" price)]])
 
+(defn Profits [profit]
+  [:div.profit {:id "divProfit"}
+   [:span.label (str "Profits: $" profit)]])
+
 (hiccups/defhtml BitcoinGame
-                 [{:keys [price]}]
+                 [{:keys [price profit]}]
                  (.log js/console (str "receiving price " price))
                  [:main.text-center
                   (PageTitle)
+                  (Profits profit)
                   (PriceSection price)
                   (Start)
                   (Reset)
+                  (PriceSlider)
                   (ButtonPanel)])

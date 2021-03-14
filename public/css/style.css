@@ -42,6 +42,16 @@ body {
     outline: none;
 }
 
+.divUpButton {
+    display: inline-block;
+    padding: 10px;
+}
+
+.divDownButton {
+    display: inline-block;
+    padding: 10px;
+}
+
 .downBtn {
     background-color: #d61818;
     padding: 5px;
@@ -60,5 +70,18 @@ body {
 }
 
 .price {
+    display: none;
     font-size: 60px;
+}
+
+.profit {
+    display: none;
+    font-size: 40px;
+    padding: 20px;
+    text-align: right;
+}
+
+.rangeSlider {
+    padding: 20px;
+    display: none;
 }
