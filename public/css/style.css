@@ -85,3 +85,12 @@ body {
     padding: 20px;
     display: none;
 }
+
+.gameOver {
+    padding: 20px;
+    display: none;
+}
+
+.imgGameOver {
+    border-radius: 5%;
+}

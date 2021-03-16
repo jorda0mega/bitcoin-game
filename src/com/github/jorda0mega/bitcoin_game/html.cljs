@@ -26,6 +26,10 @@
    (DownButton)
    (UpButton)])
 
+(defn GameOver []
+  [:div.gameOver {:id "divGameOver"}
+   [:img.imgGameOver {:src "assets/broke.jpeg" :width "70%" :height "70%"}]])
+
 (defn PriceSection [price]
   [:div.price {:id "divPrice"}
    [:span.label (str "$" price)]])
@@ -42,6 +46,7 @@
                   (Profits profit)
                   (PriceSection price)
                   (Start)
+                  (GameOver)
                   (Reset)
-                  (PriceSlider)
+                  ;(PriceSlider)
                   (ButtonPanel)])
