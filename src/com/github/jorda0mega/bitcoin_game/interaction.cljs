@@ -19,14 +19,13 @@
   (timbre/trace new-state)
   (set-app-html! (html/BitcoinGame new-state)))
 
-(defn start-game-success [new-price]
+(defn start-game-success [response]
   (swap! state (fn [current-state]
-                 (if-not (:is-playing-game? current-state)
-                   current-state
-                   (assoc current-state :price new-price)))))
+                 (let [current-price (js/parseFloat (:price current-state))]
+                   (if-not (:is-playing-game? current-state)
+                     current-state
+                     (assoc current-state :price current-price))))))
 
-(defn fetch-bitcoin-price-error [{:keys [status status-text]}]
-  (timbre/error "bad request to bitcoin charts: " status " " status-text))
 
 (defn profit-from-vote
   "determines whether the vote was correct/wrong and adds/removes profits accordingly"
@@ -37,29 +36,53 @@
                      (assoc current-state :profit (+ current-profit bid))
                      (assoc current-state :profit (- current-profit bid)))))))
 
+(defn fetch-bitcoin-price-success! [response]
+  (let [new-price (:price_usd (first response))]
+    (timbre/log "new price of bitcoin: " new-price)
+    (swap! state (fn [current-state]
+                   (let [current-price (js/parseFloat (:price current-state))]
+                     (if (= current-price new-price)
+                       (assoc state :price (* (rand 2) current-price))
+                       (assoc state :price new-price)))))
+    new-price))
+
 (defn vote-up-success
   "handle voting up "
-  [new-price]
+  [response]
   (timbre/info "calling vote up")
   (swap! state (fn [current-state]
-                 (assoc current-state :price new-price)
-                 (profit-from-vote (>= new-price (:price current-state)) 100))))
+                 (let [new-price (fetch-bitcoin-price-success! response)]
+                   (profit-from-vote (>= new-price (:price current-state)) 100)))))
 
 (defn vote-down-success
   "handle voting up "
-  [new-price]
+  [response]
   (timbre/info "calling vote down")
   (swap! state (fn [current-state]
-                 (assoc current-state :price new-price)
-                 (profit-from-vote (<= new-price (:price current-state)) 100))))
+                 (let [new-price (fetch-bitcoin-price-success! response)]
+                   (profit-from-vote (<= new-price (:price current-state)) 100)))))
+
+(defn fetch-bitcoin-price-error [{:keys [status status-text]}]
+  (timbre/error "bad request to bitcoin price: " status " " status-text))
+
+(defn parse-bitcoin-price
+  "parses the current bitcoin price from the response"
+  [response]
+  (timbre/info (first response))
+  (let [btcusd-pair (filter (fn [pricefeed]
+                              (= (:pair pricefeed) "BTCUSD")) response)]
+    (timbre/info "btcusd price item: " (first btcusd-pair))
+    (timbre/info "btcusd price: " (:price (first btcusd-pair)))
+    (:price (first btcusd-pair))))
+
 
 (defn fetch-bitcoin-price
   "ajax request to fetch bitcoin current price"
   [success-fn]
-  (GET "https://api.coinlore.net/api/ticker/?id=90" {:handler         success-fn
-                                                     :error-handler   fetch-bitcoin-price-error
-                                                     :response-format :json
-                                                     :keywords?       true}))
+  (GET "https://api.gemini.com/v1/pricefeed" {:handler         parse-bitcoin-price
+                                              :error-handler   fetch-bitcoin-price-error
+                                              :response-format :json
+                                              :keywords?       true}))
 
 (defn start-game []
   (swap! state (fn [state]
