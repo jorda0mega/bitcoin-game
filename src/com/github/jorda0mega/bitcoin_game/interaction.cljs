@@ -15,21 +15,18 @@
     (oset! el "innerHTML" html-str)))
 
 (defn render-ui! [_ _kwd _prev-state new-state]
-  (timbre/trace "getting new state")
-  (timbre/trace new-state)
   (set-app-html! (html/BitcoinGame new-state)))
+
+(def randomize-price? true)
 
 (defn parse-bitcoin-price
   "parses the current bitcoin price from the response"
   [response]
-  ;(timbre/info (first response))
   (let [current-price (:price @state)
         btcusd-pair (filter (fn [pricefeed]
                               (= (:pair pricefeed) "BTCUSD")) response)
         new-price (:price (first btcusd-pair))]
-    ;(timbre/info "btcusd price item: " (first btcusd-pair))
-    ;(timbre/info "btcusd price: " (:price (first btcusd-pair)))
-    (if (= current-price new-price)
+    (if (and randomize-price? (= current-price new-price))
       (* (rand 2) current-price)
       new-price)))
 
@@ -79,6 +76,18 @@
                      :price new-price
                      :profit (profit-from-vote (<= new-price (:price current-state)) 100))))))
 
+
+(defn vote-success
+  "handle voting up "
+  [direction response]
+  (timbre/info "calling vote down")
+  (swap! state (fn [current-state]
+                 (let [new-price (parse-bitcoin-price response)
+                       operator (if (= direction :up) >= <=)]
+                   (assoc current-state
+                     :price new-price
+                     :profit (profit-from-vote (operator new-price (:price current-state)) 100))))))
+
 (defn fetch-bitcoin-price-error [{:keys [status status-text]}]
   (timbre/error "bad request to bitcoin price: " status " " status-text))
 
@@ -102,13 +111,15 @@
   "voting that the bitcoin price will go up"
   []
   (timbre/info "I bet the bitcoin price is going up")
-  (fetch-bitcoin-price vote-up-success))
+  (fetch-bitcoin-price (partial vote-success :up))
+  (fetch-bitcoin-price #(vote-success:up %)))
+
 
 (defn vote-down
   "voting that the bitcoin price will go down"
   []
   (timbre/info "I bet the bitcoin price is going down")
-  (fetch-bitcoin-price vote-down-success))
+  (fetch-bitcoin-price (partial vote-success :down)))
 
 (defn handle-game-started []
   (oset! (gdom/getElement "startButton") "style.display" "none")
@@ -116,7 +127,7 @@
   (oset! (gdom/getElement "divProfit") "style.display" "block")
   (oset! (gdom/getElement "buttonPanel") "style.display" "inline-block")
   (oset! (gdom/getElement "resetButton") "style.display" "inline-block"))
-  ;(oset! (gdom/getElement "divRangeSlider") "style.display" "block"))
+;(oset! (gdom/getElement "divRangeSlider") "style.display" "block"))
 
 (defn game-over? []
   (when (< (:profit @state) 0)

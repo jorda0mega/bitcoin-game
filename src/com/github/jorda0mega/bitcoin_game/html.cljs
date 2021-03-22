@@ -13,7 +13,7 @@
   [:div [:input {:id "resetButton" :class "reset" :type "button" :value "Reset"}]])
 
 (defn PriceSlider []
-  [:div.rangeSlider {:id "divRangeSlider"} [:input {:id "inputRangeSlider" :type "range" :min "0" :max "1000" :step "100" :value="500"}]])
+  [:div.rangeSlider {:id "divRangeSlider"} [:input {:id "inputRangeSlider" :type "range" :min "0" :max "1000" :step "100" :value= "500"}]])
 
 (defn UpButton []
   [:div.divUpButton [:input {:id "upButton" :class "upBtn" :type "button" :value "⬆"}]])
