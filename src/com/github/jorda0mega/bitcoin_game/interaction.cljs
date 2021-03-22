@@ -46,6 +46,7 @@
       (+ current-profit bid)
       (- current-profit bid))))
 
+;; Probably don't need this anymore given refactor into vote-success fn
 ;(defn fetch-bitcoin-price-success! [response]
 ;  (let [new-price (:price_usd (first response))]
 ;    (timbre/log "new price of bitcoin: " new-price)
